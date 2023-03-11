@@ -141,7 +141,7 @@ else:
 		m = re.search('(https?\://)?([^/]*)/?.*', url)
 		host = m.group(2)
 		for i in range(5000000):
-			time.sleep(0.5)
+			time.sleep(1)
 			t = HTTPThread()
 			t.start()
 		t = MonitorThread()
